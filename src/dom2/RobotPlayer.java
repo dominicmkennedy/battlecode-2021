@@ -71,6 +71,7 @@ public strictfp class RobotPlayer {
         int bid=(int)Math.pow(round, 0.6);
         while (!rc.canBid(bid)) {bid-=2;}
         rc.bid(bid);
+        totalInfluence -= bid;
 
 
         //e center will then attempt to make a bot bots come at a ratio of
