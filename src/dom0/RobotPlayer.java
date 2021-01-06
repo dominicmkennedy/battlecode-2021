@@ -72,6 +72,10 @@ public strictfp class RobotPlayer {
             }
         }
     }*/
+
+    //e center will first attempt to make a bot bots come at a ratio of
+    //50% pol, 40% muckraker, 10% slanderer
+    //will then bid 4% on a vote
     static void runEnlightenmentCenter() throws GameActionException {
         int influence = 50;
         int percent = turnCount % 10;
@@ -86,7 +90,9 @@ public strictfp class RobotPlayer {
         if (rc.canBid(influence/25))
             rc.bid(influence/25);
     }
+    
 
+    //unchanged
     static void runPolitician() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
         int actionRadius = rc.getType().actionRadiusSquared;
@@ -106,6 +112,9 @@ public strictfp class RobotPlayer {
             System.out.println("I moved!");
     }*/
     static void runSlanderer() throws GameActionException {
+        //slanderers will be put into one of four groups based on bot id
+        //each group will attempt to move in diagonal lines across the map
+        //when the digonal is unavilible the will move on random
         int oneinfour = rc.getID() % 4;
         if (!tryMove(directions[(2*oneinfour)+1]))
             for (Direction dir : directions) 
@@ -114,7 +123,7 @@ public strictfp class RobotPlayer {
 
     }
 
-    static void runMuckraker() throws GameActionException {
+    /*static void runMuckraker() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
         int actionRadius = rc.getType().actionRadiusSquared;
         for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {
@@ -129,6 +138,60 @@ public strictfp class RobotPlayer {
         }
         if (tryMove(randomDirection()))
             System.out.println("I moved!");
+    }*/
+    static void runMuckraker() throws GameActionException {
+        Team enemy = rc.getTeam().opponent();
+        int actionRadius = rc.getType().actionRadiusSquared;
+        //really sloppy but these two loops check for to
+        //expose the slanderer with the highest influnce first
+        int top = 0;
+        for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {
+            if (robot.type.canBeExposed()) {
+                if (robot.influence > top)
+                    top = robot.influence;
+            }
+        }
+        for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {
+            if (robot.type.canBeExposed()) {
+                if (robot.influence == top) {
+                    if (rc.canExpose(robot.location)) {
+                        rc.expose(robot.location);
+                        return;
+                    }
+                }
+            }
+        }
+        
+        //this will check for all bots within the sensing radius 
+        //and will attempt to move towards those that can be exposed
+        for (RobotInfo robot : rc.senseNearbyRobots()) {
+            if (robot.type.canBeExposed()) {
+                if (robot.getTeam() != rc.getTeam()) {
+                    MapLocation myLoc = rc.getLocation();
+                    MapLocation enemyLoc = robot.getLocation();
+                    if ((enemyLoc.x == myLoc.x) && (enemyLoc.y > myLoc.y))
+                        tryMove(directions[0]);
+                    if ((enemyLoc.x == myLoc.x) && (enemyLoc.y < myLoc.y))
+                        tryMove(directions[4]);
+                    if ((enemyLoc.x > myLoc.x) &&  (enemyLoc.y > myLoc.y))
+                        tryMove(directions[1]);
+                    if ((enemyLoc.x > myLoc.x) &&  (enemyLoc.y < myLoc.y))
+                        tryMove(directions[3]);
+                    if ((enemyLoc.x < myLoc.x) &&  (enemyLoc.y > myLoc.y))
+                        tryMove(directions[7]);
+                    if ((enemyLoc.x < myLoc.x) &&  (enemyLoc.y < myLoc.y))
+                        tryMove(directions[5]);
+                    if ((enemyLoc.x > myLoc.x) && (enemyLoc.y == myLoc.y))
+                        tryMove(directions[2]);
+                    if ((enemyLoc.x < myLoc.x) && (enemyLoc.y == myLoc.y))
+                        tryMove(directions[4]);
+                }
+            }
+        }
+        
+        //rn it just moves rondomly otherwise 
+        //but id like it to retreat from ALL other bots
+        tryMove(randomDirection());
     }
 
     /**
