@@ -66,7 +66,7 @@ public strictfp class RobotPlayer {
         RobotType toBuild = randomSpawnableRobotType();
         int influence = 50;
 
-        System.out.println(rc.getInfluence());
+        //System.out.println(rc.getConviction());
         if (rc.getRoundNum()%50 == 0 && rc.getRoundNum() < 1000) {
             toBuild = RobotType.SLANDERER;
             influence = rc.getInfluence() - rc.getInfluence()%20;
